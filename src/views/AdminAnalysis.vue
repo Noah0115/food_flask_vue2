@@ -1,0 +1,242 @@
+<template>
+  <div class="goods" id="goods" name="goods">
+    <!-- 面包屑 -->
+    <div class="breadcrumb">
+      <el-breadcrumb separator-class="el-icon-arrow-right">
+        <el-breadcrumb-item to="/">首页</el-breadcrumb-item>
+        <el-breadcrumb-item>美食分析</el-breadcrumb-item>
+        <el-breadcrumb-item>可视化展示</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+    <!-- 面包屑END -->
+    <div class="main">
+      <el-row :gutter="20">
+        <el-col :span="12">
+          <el-card class="card" :style="{ height: '44vh' }">
+            <!-- 内容1 -->
+
+            <v-chart :option="option_column" style="height: 400px"></v-chart>
+          </el-card>
+        </el-col>
+        <el-col :span="12">
+          <el-card class="card" :style="{ height: '44vh' }">
+            <!-- 内容2 -->
+            <v-chart :option="option_ban" style="height: 400px"></v-chart>
+          </el-card>
+        </el-col>
+      </el-row>
+      <!-- 下面的一个 el-card 固定大小 -->
+      <el-card class="card" :style="{ height: '44vh' }">
+        <!-- 内容3 -->
+        <v-chart :option="option_zhu" style="height: 400px"></v-chart>
+      </el-card>
+    </div>
+  </div>
+</template>
+  
+  <script>
+
+export default {
+
+  data() {
+    return {
+      option_column: {
+        tooltip: {
+          trigger: 'item'
+        },
+        legend: {
+          top: '5%',
+          left: 'center'
+        },
+        series: [
+          {
+            name: '',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 10,
+              borderColor: '#fff',
+              borderWidth: 2
+            },
+            label: {
+              show: false,
+              position: 'center'
+            },
+            emphasis: {
+              label: {
+                show: true,
+                fontSize: 40,
+                fontWeight: 'bold'
+              }
+            },
+            labelLine: {
+              show: false
+            },
+            data: [
+              { value: 1048, name: 'Search Engine' },
+              { value: 735, name: 'Direct' },
+              { value: 580, name: 'Email' },
+              { value: 484, name: 'Union Ads' },
+              { value: 300, name: 'Video Ads' }
+            ]
+          }
+        ]
+      },
+      option_ban: {
+        tooltip: {
+          trigger: 'item'
+        },
+        legend: {
+          top: '5%',
+          left: 'center',
+          // doesn't perfectly work with our tricks, disable it
+          selectedMode: false
+        },
+        series: [
+          {
+            name: '',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            center: ['50%', '70%'],
+            // adjust the start angle
+            startAngle: 180,
+            label: {
+              show: true,
+              formatter(param) {
+                // correct the percentage
+                return param.name + ' (' + param.percent * 2 + '%)';
+              }
+            },
+            data: [
+              { value: 1048, name: 'Search Engine' },
+              { value: 735, name: 'Direct' },
+              { value: 580, name: 'Email' },
+              { value: 484, name: 'Union Ads' },
+              { value: 300, name: 'Video Ads' },
+              {
+                // make an record to fill the bottom 50%
+                value: 1048 + 735 + 580 + 484 + 300,
+                itemStyle: {
+                  // stop the chart from rendering this piece
+                  color: 'none',
+                  decal: {
+                    symbol: 'none'
+                  }
+                },
+                label: {
+                  show: false
+                }
+              }
+            ]
+          }
+        ]
+      },
+      option_zhu: {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '3%',
+          containLabel: true
+        },
+        xAxis: [
+          {
+            type: 'category',
+            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            axisTick: {
+              alignWithLabel: true
+            }
+          }
+        ],
+        yAxis: [
+          {
+            type: 'value'
+          }
+        ],
+        series: [
+          {
+            name: '数量',
+            type: 'bar',
+            barWidth: '60%',
+            data: [10, 52, 200, 334, 390, 330, 220]
+          }
+        ]
+      }
+    };
+  },
+
+  created() {
+    this.getPie();
+    this.getBan();
+    this.getZhu();
+  },
+
+  methods: {
+    async getPie() {
+      const { data: res } = await this.$http.get("/index/data_anl_pie",);
+      if (res.code !== 200) {
+
+        return this.$message.error("数据获取失败");
+      }
+      this.option_column.series[0].data = res.data
+      console.log(this.option_column.series[0].data)
+    },
+    async getBan() {
+      const { data: res } = await this.$http.get("/index/data_anl_pie_flavour",);
+      if (res.code !== 200) {
+
+        return this.$message.error("数据获取失败");
+      }
+      this.option_ban.series[0].data = res.data[0]
+      this.option_ban.series[0].data.push({
+        value: res.data[1],
+        itemStyle: {
+          color: 'none',
+          decal: {
+            symbol: 'none'
+          }
+        },
+        label: {
+          show: false
+        }
+      });
+      console.log(this.option_ban.series[0].data)
+    },
+    async getZhu() {
+      const { data: res } = await this.$http.get("/index/data_anl_bar",);
+      if (res.code !== 200) {
+
+        return this.$message.error("数据获取失败");
+      }
+      this.option_zhu.xAxis[0].data = res.data[0]
+      this.option_zhu.series[0].data = res.data[1]
+
+    },
+
+
+
+  },
+  mounted() {
+  }
+
+}
+
+  </script>
+<style scoped>
+
+.breadcrumb .el-breadcrumb {
+  font-size: 16px !important;
+}
+.main{
+    margin-top: 20px;
+}
+.card {
+  margin-top: 20px;
+}
+</style>
