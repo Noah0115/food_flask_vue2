@@ -2,6 +2,10 @@
 
 ## 项目环境
 
+node_modules网盘下载:https://wwd.lanzout.com/iuJdq1p7gd9c
+
+## 项目环境
+
 Python3.11.6
 
 Windows11
